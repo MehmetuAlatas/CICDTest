@@ -1,32 +1,15 @@
 version: "3"
 services:
   jenkins:
-    image: jenkins/jenkins:jdk21
+    build: .
     container_name: jenkins
     ports:
       - "8080:8080"
       - "50000:50000"
     volumes:
-      - ./jenkins_home:/var/jenkins_home
+      - jenkins_home:/var/jenkins_home  # Bind-mounted volume yerine Docker volumes kullanıyoruz
+    shm_size: "2g"
     restart: always
-    user: root  # Jenkins konteyneri içinde root yetkilerini kullanabilmek için
-    environment:
-      - JAVA_OPTS=-Djenkins.install.runSetupWizard=false  # Setup wizard'ı devre dışı bırakmak için
-    command: >
-      /bin/bash -c "
-      apt-get update && 
-      apt-get install -y wget gnupg2 curl unzip firefox-esr && 
-      wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - &&
-      echo \"deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main\" > /etc/apt/sources.list.d/google-chrome.list &&
-      apt-get update && apt-get install -y google-chrome-stable && 
-      CHROME_DRIVER_VERSION=$(curl -sS chromedriver.storage.googleapis.com/LATEST_RELEASE) && 
-      wget -N https://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip && 
-      unzip chromedriver_linux64.zip -d /usr/local/bin/ && 
-      rm chromedriver_linux64.zip && 
-      GECKO_DRIVER_VERSION=$(curl -sS https://api.github.com/repos/mozilla/geckodriver/releases/latest | grep 'tag_name' | cut -d\" -f4) && 
-      wget -N https://github.com/mozilla/geckodriver/releases/download/$GECKO_DRIVER_VERSION/geckodriver-v$GECKO_DRIVER_VERSION-linux64.tar.gz && 
-      tar -xzf geckodriver-v$GECKO_DRIVER_VERSION-linux64.tar.gz -C /usr/local/bin/ && 
-      rm geckodriver-v$GECKO_DRIVER_VERSION-linux64.tar.gz && 
-      chmod +x /usr/local/bin/chromedriver /usr/local/bin/geckodriver && 
-      chown -R jenkins:jenkins /usr/local/bin/ && 
-      /usr/local/bin/jenkins.sh"
+
+volumes:
+  jenkins_home:
